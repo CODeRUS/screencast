@@ -69,20 +69,21 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
     parser.process(app);
 
     Cast::Options options = Cast::readOptions();
-    if (parser.isSet(buffersOption)) {
-        options.buffers = parser.value(buffersOption).toInt();
-    }
-    if (parser.isSet(scaleOption)) {
-        options.scale = parser.value(scaleOption).toFloat();
-    }
-    if (parser.isSet(qualityOption)) {
-        options.quality = parser.value(qualityOption).toInt();
-    }
-    options.smooth = parser.isSet(smoothOption);
     options.daemonize = parser.isSet(daemonOption);
     if (options.daemonize) {
         qCDebug(logmain) << "Daemonize";
     } else {
+        if (parser.isSet(buffersOption)) {
+            options.buffers = parser.value(buffersOption).toInt();
+        }
+        if (parser.isSet(scaleOption)) {
+            options.scale = parser.value(scaleOption).toFloat();
+        }
+        if (parser.isSet(qualityOption)) {
+            options.quality = parser.value(qualityOption).toInt();
+        }
+        options.smooth = parser.isSet(smoothOption);
+
         setShutDownSignal(SIGINT); // shut down on ctrl-c
         setShutDownSignal(SIGTERM); // shut down on killall
     }
