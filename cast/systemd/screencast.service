@@ -1,0 +1,12 @@
+[Unit]
+Description=Screencast daemon
+After=local-fs.target dbus.socket
+Conflicts=shutdown.target
+
+[Service]
+ExecStart=-/usr/sbin/screencast --daemon $SCREENCAST_OPTIONS
+User=nemo
+Group=privileged
+
+EnvironmentFile=-/var/lib/environment/nemo/*.conf
+Environment=XDG_RUNTIME_DIR=/run/user/100000

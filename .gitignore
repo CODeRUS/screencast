@@ -1,0 +1,8 @@
+
+*.avi
+
+*.so
+
+*.user
+
+\.build*/

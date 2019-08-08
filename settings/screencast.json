@@ -1,0 +1,15 @@
+{
+    "translation_catalog": "settings-system",
+    "entries": [
+        {
+            "path": "system_settings/system/screencast",
+            "title": "Screencast",
+            "translation_id": "settings_screencast-title",
+            "type": "page",
+            "icon": "image://theme/icon-m-screencast",
+            "params": {
+                "source": "/usr/share/jolla-settings/pages/screencast/mainpage.qml"
+            }
+        }
+    ]
+}

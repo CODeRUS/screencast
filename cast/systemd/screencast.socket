@@ -1,0 +1,9 @@
+[Unit]
+Before=screencast.service
+
+[Socket]
+ListenStream=554
+Accept=no
+
+[Install]
+WantedBy=sockets.target
