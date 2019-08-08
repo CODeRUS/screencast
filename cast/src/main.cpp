@@ -68,7 +68,7 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
 
     parser.process(app);
 
-    Cast::Options options = Cast::readOptions();
+    Options options = Cast::readOptions();
     options.daemonize = parser.isSet(daemonOption);
     if (options.daemonize) {
         qCDebug(logmain) << "Daemonize";

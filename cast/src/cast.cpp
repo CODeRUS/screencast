@@ -32,7 +32,9 @@
 #include <QLoggingCategory>
 
 #include <MDConfGroup>
+#include <MGConfItem>
 #include <QBuffer>
+#include <QCryptographicHash>
 #include <QTcpServer>
 #include <QTcpSocket>
 
@@ -43,6 +45,23 @@
 
 Q_LOGGING_CATEGORY(logcast, "screencast.cast", QtDebugMsg)
 Q_LOGGING_CATEGORY(logbuffer, "screencast.cast.buffer", QtDebugMsg)
+
+static const QByteArray c_notFoundResponse = QByteArrayLiteral(
+    "HTTP/1.1 404 NOT-FOUND\r\n"
+    "Content-Length: 0\r\n\r\n");
+
+static const QByteArray c_authResponse = QByteArrayLiteral(
+    "HTTP/1.1 401 UNAUTHORIZED\r\n"
+    "Access-Control-Allow-Credentials: true\r\n"
+    "Access-Control-Allow-Origin: *\r\n"
+    "Date: Thu, 08 Aug 2019 10:50:12 GMT\r\n"
+    "Referrer-Policy: no-referrer-when-downgrade\r\n"
+    "Server: Sailfish OS\r\n"
+    "WWW-Authenticate: Basic realm=\"Sailfish OS Screencast\"\r\n"
+    "X-Content-Type-Options: nosniff\r\n"
+    "X-Frame-Options: DENY\r\n"
+    "X-XSS-Protection: 1; mode=block\r\n"
+    "Content-Length: 0\r\n\r\n");
 
 static const QByteArray c_contentType = QByteArrayLiteral(
     "HTTP/1.0 200 OK\r\n"
@@ -56,6 +75,8 @@ static const QByteArray c_boundaryStringBegin = QByteArrayLiteral("--boundary\r\
                              "Content-Type: image/jpeg\r\n" \
                              "Content-Length: ");
 static const QByteArray c_boundaryStringEnd = QByteArrayLiteral("\r\n\r\n");
+
+static const QString c_dconfPath = QStringLiteral("/org/coderus/screencast");
 
 static Cast *s_instance = nullptr;
 
@@ -122,9 +143,12 @@ Cast::Cast(const Options &options, QObject *parent)
 
     s_instance = this;
 
+    MGConfItem *dconf = new MGConfItem(c_dconfPath + QLatin1String("/clients"));
+    dconf->set(QStringList());
+
     QThread *serverThread = new QThread;
 
-    Sender *sender = new Sender(554);
+    Sender *sender = new Sender(554, m_options);
     connect(serverThread, &QThread::started, sender, &Sender::initialize);
     connect(this, &Cast::sendFrame, sender, &Sender::sendFrame);
     connect(sender, &Sender::lastClientDisconnected, [this]() {
@@ -133,8 +157,20 @@ Cast::Cast(const Options &options, QObject *parent)
         }
         handleShutDown();
     });
+    connect(sender, &Sender::clientConnected, [dconf](const QString &address) {
+        QStringList clients = dconf->value(QStringList()).toStringList();
+        clients.append(address);
+        dconf->set(clients);
+    });
+    connect(sender, &Sender::clientDisconnected, [dconf](const QString &address) {
+        QStringList clients = dconf->value(QStringList()).toStringList();
+        clients.removeAll(address);
+        dconf->set(clients);
+    });
     sender->moveToThread(serverThread);
-    serverThread->start();
+    QTimer::singleShot(0, this, [serverThread]() {
+        serverThread->start();
+    });
 }
 
 Cast *Cast::instance()
@@ -146,15 +182,17 @@ Cast::~Cast()
 {
 }
 
-Cast::Options Cast::readOptions()
+Options Cast::readOptions()
 {
-    MDConfGroup dconf(QStringLiteral("/org/coderus/screencast"));
+    MDConfGroup dconf(c_dconfPath);
     return {
         dconf.value(QStringLiteral("buffers"), 48).toInt(),
         dconf.value(QStringLiteral("scale"), 0.5f).toDouble(),
         dconf.value(QStringLiteral("quality"), 90).toInt(),
         dconf.value(QStringLiteral("smooth"), true).toBool(),
-        false,
+        dconf.value(QStringLiteral("username"), QString()).toString(),
+        dconf.value(QStringLiteral("password"), QString()).toString(),
+        false, // daemonize
     };
 }
 
@@ -328,8 +366,9 @@ void Cast::globalRemove(void *data, wl_registry *registry, uint32_t id)
     Q_UNUSED(id)
 }
 
-Sender::Sender(int port)
+Sender::Sender(int port, Options options)
     : m_port(port)
+    , m_options(options)
 {
 
 }
@@ -396,15 +435,77 @@ void Sender::handleConnection()
     connect(client, static_cast<void (QTcpSocket::*)(QAbstractSocket::SocketError)>(&QAbstractSocket::error), [client](QAbstractSocket::SocketError socketError) {
         qCWarning(logcast) << Q_FUNC_INFO << client << client->peerAddress() << socketError;
     });
-    m_clients.append(client);
 }
 
 void Sender::connectionReadyRead()
 {
     QTcpSocket *client = qobject_cast<QTcpSocket*>(sender());
     qCDebug(logcast) << Q_FUNC_INFO << client << client->peerAddress();
-    qCDebug(logcast).noquote() << client->readAll();
+
+    const QByteArray data = client->readAll();
+    qCDebug(logcast).noquote() << data;
+    const QList<QByteArray> requestLines = data.split('\n');
+
+    const QString httpLine = QString::fromLatin1(requestLines.first()).trimmed();
+
+    const QStringList request = httpLine.split(QChar(u' '));
+    const QString method = request.first();
+    if (method != QLatin1String("GET")) {
+        client->write(c_notFoundResponse);
+        return;
+    }
+    if (request.size() != 3) {
+        client->write(c_notFoundResponse);
+        return;
+    }
+    const QString url = request.at(1);
+    if (url != QLatin1String("/")) {
+        client->write(c_notFoundResponse);
+        return;
+    }
+
+    QString authorization;
+    for (const QByteArray &requestLine : requestLines) {
+        const QString &token = QString::fromLatin1(requestLine).trimmed();
+
+        if (token.startsWith(QLatin1String("Authorization:"))) {
+            const QStringList auth = token.split(QChar(u' '));
+            if (auth.count() != 3) {
+                continue;
+            }
+            if (auth.at(1) != QLatin1String("Basic")) {
+                continue;
+            }
+
+            authorization = auth.last();
+        }
+    }
+
+    if (!m_options.username.isEmpty() && !m_options.password.isEmpty()) {
+        if (authorization.isEmpty()) {
+            client->write(c_authResponse);
+            return;
+        } else {
+            const QByteArray expectedAuth =
+                    QStringLiteral("%1:%2")
+                    .arg(m_options.username, m_options.password)
+                    .toLatin1()
+                    .toBase64(QByteArray::Base64Encoding | QByteArray::KeepTrailingEquals);
+            if (expectedAuth != authorization.toLatin1()) {
+                qDebug() << expectedAuth;
+                client->write(c_authResponse);
+                return;
+            } else {
+                qDebug() << "Successful auth";
+            }
+        }
+    }
+
     client->write(c_contentType);
+    m_clients.append(client);
+    emit clientConnected(QStringLiteral("%1:%2")
+                         .arg(client->peerAddress().toString())
+                         .arg(client->peerPort()));
 }
 
 void Sender::connectionClosed()
@@ -413,6 +514,9 @@ void Sender::connectionClosed()
     qCDebug(logcast) << Q_FUNC_INFO << client << client->peerAddress()
                      << client->errorString() << m_server->errorString();
     m_clients.removeAll(client);
+    emit clientDisconnected(QStringLiteral("%1:%2")
+                            .arg(client->peerAddress().toString())
+                            .arg(client->peerPort()));
 
     if (m_clients.isEmpty()) {
         emit lastClientDisconnected();

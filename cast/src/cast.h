@@ -21,19 +21,31 @@
 #include <QPixmap>
 #include <QMutex>
 
+struct Options {
+    int buffers;
+    double scale;
+    int quality;
+    bool smooth;
+    QString username;
+    QString password;
+    bool daemonize;
+};
+
 class QTcpServer;
 class QTcpSocket;
 class Sender : public QObject
 {
     Q_OBJECT
 public:
-    Sender(int port);
+    Sender(int port, Options options);
 
 public slots:
     void initialize();
     void sendFrame(const QPixmap &image, int quality);
 
 signals:
+    void clientConnected(const QString &address);
+    void clientDisconnected(const QString &address);
     void lastClientDisconnected();
 
 private slots:
@@ -45,6 +57,7 @@ private:
     QTcpServer *m_server = nullptr;
     QList<QTcpSocket*> m_clients;
     int m_port = 0;
+    Options m_options;
 };
 
 struct wl_display;
@@ -58,14 +71,6 @@ class Cast : public QObject
 {
     Q_OBJECT
 public:
-    struct Options {
-        int buffers;
-        double scale;
-        int quality;
-        bool smooth;
-        bool daemonize;
-    };
-
     explicit Cast(const Options &options, QObject *parent = nullptr);
     static Cast *instance();
     virtual ~Cast();

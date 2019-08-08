@@ -13,3 +13,4 @@ RestartSec=5s
 
 EnvironmentFile=-/var/lib/environment/nemo/*.conf
 Environment=XDG_RUNTIME_DIR=/run/user/100000
+Environment=DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/100000/dbus/user_bus_socket

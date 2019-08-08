@@ -13,6 +13,9 @@ Page {
         property real scale: 0.5
         property int quality: 90
         property bool smooth: true
+        property string username
+        property string password
+        property var clients
     }
 
     DeveloperModeSettings {
@@ -30,6 +33,10 @@ Page {
 
             PageHeader {
                 title: qsTr("Screencast")
+            }
+
+            SectionHeader {
+                text: qsTr("Main options")
             }
 
             Slider {
@@ -85,14 +92,71 @@ Page {
                 }
             }
 
+            SectionHeader {
+               text: qsTr("Authorization")
+            }
+
+            TextField {
+                id: usernameField
+                width: parent.width
+                label: qsTr("Username")
+                placeholderText: qsTr("Username")
+                inputMethodHints: Qt.ImhNoAutoUppercase
+                text: conf.username
+                EnterKey.iconSource: "image://theme/icon-m-enter-next"
+                EnterKey.onClicked: {
+                    conf.username = text
+                    passwordField.focus = true
+                }
+            }
+
+            PasswordField {
+                id: passwordField
+                width: parent.width
+                label: qsTr("Password")
+                placeholderText: qsTr("Password")
+                text: conf.password
+                EnterKey.iconSource: "image://theme/icon-m-enter-accept"
+                EnterKey.onClicked: {
+                    conf.password = text
+                    focus = false
+                }
+            }
+
+            SectionHeader {
+                text: qsTr("Connection")
+            }
+
             Label {
                 anchors.left: parent.left
                 anchors.right: parent.right
                 anchors.margins: Theme.horizontalPageMargin
                 wrapMode: Text.WrapAtWordBoundaryOrAnywhere
+                property string authParams: (conf.username.length > 0 && conf.password.length > 0) ? "%1:%2@".arg(usernameField.text).arg(passwordField.text) : ""
                 text: qsTr("You can connect to:")
-                      + (developerModeSettings.wlanIpAddress ? qsTr("\n%1:554").arg(developerModeSettings.wlanIpAddress) : "")
-                      + (developerModeSettings.usbIpAddress ? qsTr("\n%1:554").arg(developerModeSettings.usbIpAddress) : "")
+                      + (developerModeSettings.wlanIpAddress ? qsTr("\nhttp://%2%1:554").arg(developerModeSettings.wlanIpAddress).arg(authParams) : "")
+                      + (developerModeSettings.usbIpAddress ? qsTr("\nhttp://%2%1:554").arg(developerModeSettings.usbIpAddress).arg(authParams) : "")
+            }
+
+            SectionHeader {
+                text: qsTr("%n connected clients", "0", clientsRepeater.count)
+                visible: clientsRepeater.count > 0
+            }
+
+            Repeater {
+                id: clientsRepeater
+                model: conf.clients
+                delegate: Label {
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.margins: Theme.horizontalPageMargin
+                    text: modelData
+                }
+            }
+
+            Item {
+                height: Theme.paddingLarge
+                width: 1
             }
         }
 
