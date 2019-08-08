@@ -8,5 +8,8 @@ ExecStart=-/usr/sbin/screencast --daemon $SCREENCAST_OPTIONS
 User=nemo
 Group=privileged
 
+Restart=on-failure
+RestartSec=5s
+
 EnvironmentFile=-/var/lib/environment/nemo/*.conf
 Environment=XDG_RUNTIME_DIR=/run/user/100000
