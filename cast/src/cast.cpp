@@ -71,10 +71,126 @@ static const QByteArray c_contentType = QByteArrayLiteral(
     "Pragma: no-cache\r\n"
     "Content-Type: multipart/x-mixed-replace;boundary=--boundary\r\n\r\n");
 
-static const QByteArray c_boundaryStringBegin = QByteArrayLiteral("--boundary\r\n" \
-                             "Content-Type: image/jpeg\r\n" \
-                             "Content-Length: ");
-static const QByteArray c_boundaryStringEnd = QByteArrayLiteral("\r\n\r\n");
+static const QByteArray c_htmlPage = QByteArrayLiteral(
+    "HTTP/1.0 200 OK\r\n"
+    "Content-Type: text/html\r\n" \
+    "Content-Length: ");
+
+static const QByteArray c_playerPage = QByteArrayLiteral(
+    "<canvas id=\"player\" style=\"background: #000;\" width=\"#WIDTH#\" height=\"#HEIGHT#\">\n"
+    "  NO JS.\n"
+    "</canvas>\n"
+    "<script>\n"
+    "  Stream = function(args) {\n"
+    "    var self = this;\n"
+    "    var autoStart = args.autoStart || false;\n"
+    "    self.url = args.url;\n"
+    "    self.refreshRate = args.refreshRate || 500;\n"
+    "    self.onStart = args.onStart || null;\n"
+    "    self.onFrame = args.onFrame || null;\n"
+    "    self.onStop = args.onStop || null;\n"
+    "    self.callbacks = {};\n"
+    "    self.running = false;\n"
+    "    self.frameTimer = 0;\n"
+    "    self.img = new Image();\n"
+    "    if (autoStart) {\n"
+    "      self.img.onload = self.start;\n"
+    "    }\n"
+    "    self.img.src = self.url;\n"
+    "    function setRunning(running) {\n"
+    "      self.running = running;\n"
+    "      if (self.running) {\n"
+    "        self.img.src = self.url;\n"
+    "        self.frameTimer = setInterval(function() {\n"
+    "          if (self.onFrame) {\n"
+    "            self.onFrame(self.img);\n"
+    "          }\n"
+    "        }, self.refreshRate);\n"
+    "        if (self.onStart) {\n"
+    "          self.onStart();\n"
+    "        }\n"
+    "      } else {\n"
+    "        self.img.src = \"#\";\n"
+    "        clearInterval(self.frameTimer);\n"
+    "        if (self.onStop) {\n"
+    "          self.onStop();\n"
+    "        }\n"
+    "      }\n"
+    "    }\n"
+    "    self.start = function() { setRunning(true); }\n"
+    "    self.stop = function() { setRunning(false); }\n"
+    "  };\n"
+    "  Player = function(canvas, url, options) {\n"
+    "    var self = this;\n"
+    "    if (typeof canvas === \"string\" || canvas instanceof String) {\n"
+    "      canvas = document.getElementById(canvas);\n"
+    "    }\n"
+    "    var context = canvas.getContext(\"2d\");\n"
+    "    if (! options) {\n"
+    "      options = {};\n"
+    "    }\n"
+    "    options.url = url;\n"
+    "    options.onFrame = updateFrame;\n"
+    "    options.onStart = function() { console.log(\"started\"); }\n"
+    "    options.onStop = function() { console.log(\"stopped\"); }\n"
+    "    self.stream = new Stream(options);\n"
+    "    canvas.addEventListener(\"click\", function() {\n"
+    "      if (self.stream.running) { self.stop(); }\n"
+    "      else { self.start(); }\n"
+    "    }, false);\n"
+    "    function scaleRect(srcSize, dstSize) {\n"
+    "      var ratio = Math.min(dstSize.width / srcSize.width,\n"
+    "                           dstSize.height / srcSize.height);\n"
+    "      var newRect = {\n"
+    "        x: 0, y: 0,\n"
+    "        width: srcSize.width * ratio,\n"
+    "        height: srcSize.height * ratio\n"
+    "      };\n"
+    "      newRect.x = (dstSize.width/2) - (newRect.width/2);\n"
+    "      newRect.y = (dstSize.height/2) - (newRect.height/2);\n"
+    "      return newRect;\n"
+    "    }\n"
+    "    function updateFrame(img) {\n"
+    "      var srcRect = {\n"
+    "        x: 0, y: 0,\n"
+    "        width: img.naturalWidth,\n"
+    "        height: img.naturalHeight\n"
+    "      };\n"
+    "      var dstRect = scaleRect(srcRect, {\n"
+    "        width: canvas.width,\n"
+    "        height: canvas.height\n"
+    "      });\n"
+    "      try {\n"
+    "        context.drawImage(img,\n"
+    "                          srcRect.x,\n"
+    "                          srcRect.y,\n"
+    "                          srcRect.width,\n"
+    "                          srcRect.height,\n"
+    "                          dstRect.x,\n"
+    "                          dstRect.y,\n"
+    "                          dstRect.width,\n"
+    "                          dstRect.height\n"
+    "                         );\n"
+    "        console.log(\".\");\n"
+    "      } catch (e) {\n"
+    "        // if we can't draw, don't bother updating anymore\n"
+    "        self.stop();\n"
+    "        console.log(\"!\");\n"
+    "        throw e;\n"
+    "      }\n"
+    "    }\n"
+    "    self.start = function() { self.stream.start(); }\n"
+    "    self.stop = function() { self.stream.stop(); }\n"
+    "  };\n"
+    "  var player = new Player(\"player\", \"/\");\n"
+    "  player.start();\n"
+    "</script>");
+
+static const QByteArray c_boundaryStringBegin = QByteArrayLiteral(
+    "--boundary\r\n" \
+    "Content-Type: image/jpeg\r\n" \
+    "Content-Length: ");
+static const QByteArray c_dataEnd = QByteArrayLiteral("\r\n\r\n");
 
 static const QString c_dconfPath = QStringLiteral("/org/coderus/screencast");
 
@@ -138,8 +254,6 @@ Cast::Cast(const Options &options, QObject *parent)
     qCDebug(logcast) << "Scale:" << options.scale;
     qCDebug(logcast) << "Smooth:" << options.smooth;
     qCDebug(logcast) << "Quality:" << options.quality;
-
-    m_screen = QGuiApplication::screens().first();
 
     s_instance = this;
 
@@ -221,12 +335,13 @@ void Cast::start()
         qFatal("The lipstick_recorder_manager global is not available.");
     }
 
-    m_size = m_screen->size();
+    QScreen *screen = QGuiApplication::screens().first();
+    m_size = screen->size();
     m_size.setWidth(qRound(m_size.width() * m_options.scale));
     m_size.setHeight(qRound(m_size.height() * m_options.scale));
 
     QPlatformNativeInterface *native = QGuiApplication::platformNativeInterface();
-    wl_output *output = static_cast<wl_output *>(native->nativeResourceForScreen(QByteArrayLiteral("output"), m_screen));
+    wl_output *output = static_cast<wl_output *>(native->nativeResourceForScreen(QByteArrayLiteral("output"), screen));
     m_recorder = lipstick_recorder_manager_create_recorder(m_manager, output);
     static const lipstick_recorder_listener recorderListener = {
         setup,
@@ -417,7 +532,7 @@ void Sender::sendFrame(const QPixmap &image, int quality)
 
         client->write(c_boundaryStringBegin);
         client->write(QByteArray::number(ba.length()));
-        client->write(c_boundaryStringEnd);
+        client->write(c_dataEnd);
         client->write(ba);
     }
 }
@@ -459,6 +574,19 @@ void Sender::connectionReadyRead()
         return;
     }
     const QString url = request.at(1);
+    if (url == QLatin1String("/player")) {
+        const QSize screenSize = QGuiApplication::screens().first()->size();
+
+        client->write(c_htmlPage);
+        QByteArray data = c_playerPage;
+        data = data.replace("#WIDTH#", QByteArray::number(screenSize.width() * m_options.scale));
+        data = data.replace("#HEIGHT#", QByteArray::number(screenSize.height() * m_options.scale));
+        client->write(QByteArray::number(data.size()));
+        client->write(c_dataEnd);
+        client->write(data);
+        return;
+    }
+
     if (url != QLatin1String("/")) {
         client->write(c_notFoundResponse);
         return;

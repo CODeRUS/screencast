@@ -66,7 +66,6 @@ struct lipstick_recorder_manager;
 struct lipstick_recorder;
 
 class Buffer;
-class QScreen;
 class Cast : public QObject
 {
     Q_OBJECT
@@ -103,7 +102,6 @@ private:
     wl_shm *m_shm = nullptr;
     lipstick_recorder_manager *m_manager = nullptr;
     lipstick_recorder *m_recorder = nullptr;
-    QScreen *m_screen = nullptr;
     QSize m_size;
     QList<Buffer *> m_buffers;
     Buffer *m_lastFrame = nullptr;
