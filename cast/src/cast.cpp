@@ -316,6 +316,7 @@ Options Cast::readOptions()
         dconf.value(QStringLiteral("username"), QString()).toString(),
         dconf.value(QStringLiteral("password"), QString()).toString(),
         false, // daemonize
+        dconf.value(QStringLiteral("flush"), false).toBool(),
     };
 }
 

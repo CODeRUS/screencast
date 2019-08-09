@@ -29,6 +29,7 @@ struct Options {
     QString username;
     QString password;
     bool daemonize;
+    bool flush;
 };
 
 class QTcpServer;
