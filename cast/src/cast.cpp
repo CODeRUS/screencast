@@ -70,7 +70,7 @@ static const QByteArray c_contentType = QByteArrayLiteral(
     "Cache-Control: private\r\n"
     "Cache-Control: no-store\r\n"
     "Pragma: no-cache\r\n"
-    "Content-Type: multipart/x-mixed-replace;boundary=--boundary\r\n\r\n");
+    "Content-Type: multipart/x-mixed-replace;boundary=boundary\r\n");
 
 static const QByteArray c_htmlPage = QByteArrayLiteral(
     "HTTP/1.0 200 OK\r\n"
@@ -192,11 +192,11 @@ static const QByteArray c_playerPage = QByteArrayLiteral(
     "  player.start();\n"
     "</script>");
 
-static const QByteArray c_boundaryStringBegin = QByteArrayLiteral(
-    "--boundary\r\n" \
-    "Content-Type: image/jpeg\r\n" \
-    "Content-Length: ");
-static const QByteArray c_dataEnd = QByteArrayLiteral("\r\n\r\n");
+static const QByteArray c_imageDataBegin = QByteArrayLiteral(
+    "Content-Type: image/jpeg\r\n\r\n");
+static const QByteArray c_dataBoundary = QByteArrayLiteral(
+    "\r\n"
+    "--boundary\r\n");
 
 static const QString c_dconfPath = QStringLiteral("/org/coderus/screencast");
 
@@ -550,12 +550,14 @@ void Sender::sendLastFrame(QTcpSocket *client)
 {
     qDebug() << Q_FUNC_INFO << m_lastFrame.length();
     if (m_lastFrame.length() == 0) {
+        client->write(c_dataBoundary);
         return;
     }
-    client->write(c_boundaryStringBegin);
-    client->write(QByteArray::number(m_lastFrame.length()));
-    client->write(c_dataEnd);
+    client->write(c_dataBoundary);
+    client->write(c_imageDataBegin);
+    // client->write(QByteArray::number(m_lastFrame.length()));
     client->write(m_lastFrame);
+    client->write(c_dataBoundary);
     client->waitForBytesWritten();
 }
 
@@ -586,10 +588,10 @@ void Sender::sendFrame(const QPixmap &image, int quality, int rotation)
                                << "client isWritable:" << client->isWritable();
         }
 
-        client->write(c_boundaryStringBegin);
-        client->write(QByteArray::number(m_lastFrame.length()));
-        client->write(c_dataEnd);
+        client->write(c_imageDataBegin);
+        // client->write(QByteArray::number(m_lastFrame.length()));
         client->write(m_lastFrame);
+        client->write(c_dataBoundary);
         if (m_options.flush) {
             client->waitForBytesWritten();
         }
