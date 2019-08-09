@@ -556,7 +556,7 @@ void Sender::sendLastFrame(QTcpSocket *client)
     client->write(QByteArray::number(m_lastFrame.length()));
     client->write(c_dataEnd);
     client->write(m_lastFrame);
-    client->flush();
+    client->waitForBytesWritten();
 }
 
 void Sender::sendFrame(const QPixmap &image, int quality, int rotation)
@@ -591,7 +591,7 @@ void Sender::sendFrame(const QPixmap &image, int quality, int rotation)
         client->write(c_dataEnd);
         client->write(m_lastFrame);
         if (m_options.flush) {
-            client->flush();
+            client->waitForBytesWritten();
         }
     }
 }
