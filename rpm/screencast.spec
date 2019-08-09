@@ -5,7 +5,7 @@
 
 Name:       screencast
 Summary:    Sailfish screen cast
-Version:    0.2.0
+Version:    0.2.1
 Release:    1
 Group:      System/GUI/Other
 License:    GPLv2
@@ -13,6 +13,8 @@ URL:        https://github.com/coderus/screencast
 Source0:    %{name}-%{version}.tar.bz2
 BuildRequires:  pkgconfig(Qt5Core)
 BuildRequires:  pkgconfig(Qt5Gui)
+BuildRequires:  pkgconfig(Qt5Network)
+BuildRequires:  pkgconfig(Qt5PlatformSupport)
 BuildRequires:  qt5-qtwayland-wayland_egl-devel
 BuildRequires:  pkgconfig(wayland-client)
 BuildRequires:  pkgconfig(mlite5)
