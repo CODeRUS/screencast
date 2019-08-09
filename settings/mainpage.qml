@@ -134,8 +134,8 @@ Page {
                 wrapMode: Text.WrapAtWordBoundaryOrAnywhere
                 property string authParams: (conf.username.length > 0 && conf.password.length > 0) ? "%1:%2@".arg(usernameField.text).arg(passwordField.text) : ""
                 text: qsTr("You can connect to:")
-                      + (developerModeSettings.wlanIpAddress ? qsTr("\nhttp://%2%1:554").arg(developerModeSettings.wlanIpAddress).arg(authParams) : "")
-                      + (developerModeSettings.usbIpAddress ? qsTr("\nhttp://%2%1:554").arg(developerModeSettings.usbIpAddress).arg(authParams) : "")
+                      + (developerModeSettings.wlanIpAddress ? qsTr("\nhttp://%1%2:554").arg(authParams).arg(developerModeSettings.wlanIpAddress) : "")
+                      + (developerModeSettings.usbIpAddress ? qsTr("\nhttp://%1%2:554").arg(authParams).arg(developerModeSettings.usbIpAddress) : "")
             }
 
             SectionHeader {
