@@ -39,18 +39,29 @@ rm -rf %{buildroot}
 
 %pre
 if [ "$1" = "2" ]; then
-systemctl stop screencast.socket |:
-systemctl stop screencast.service
+systemctl stop screencast.socket ||:
+systemctl stop screencast.service ||:
 fi
 
 %post
-systemctl daemon-reload |:
-systemctl enable screencast.socket |:
-systemctl restart screencast.socket |:
+if [ "$1" = "1" ]; then
+systemctl daemon-reload ||:
+systemctl enable screencast.socket ||:
+systemctl restart screencast.socket ||:
+fi
 
 %preun
-systemctl stop screencast.socket |:
-systemctl stop screencast.service |:
+if [ "$1" = "0" ]; then
+systemctl stop screencast.socket ||:
+systemctl stop screencast.service ||:
+fi
+
+%postun
+if [ "$1" = "1" ]; then
+systemctl daemon-reload |:
+systemctl enable screencast.socket ||:
+systemctl restart screencast.socket ||:
+fi
 
 %files
 %defattr(-,root,root,-)
