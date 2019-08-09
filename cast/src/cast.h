@@ -41,6 +41,7 @@ public:
 
 public slots:
     void initialize();
+    void sendLastFrame(QTcpSocket *client);
     void sendFrame(const QPixmap &image, int quality, int rotation);
 
 signals:
@@ -58,6 +59,7 @@ private:
     QList<QTcpSocket*> m_clients;
     int m_port = 0;
     Options m_options;
+    QByteArray m_lastFrame;
 };
 
 struct wl_display;

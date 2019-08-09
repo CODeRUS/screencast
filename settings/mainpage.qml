@@ -124,7 +124,7 @@ Page {
             }
 
             SectionHeader {
-                text: qsTr("Connection")
+                text: qsTr("You can connect to")
             }
 
             Label {
@@ -133,9 +133,18 @@ Page {
                 anchors.margins: Theme.horizontalPageMargin
                 wrapMode: Text.WrapAtWordBoundaryOrAnywhere
                 property string authParams: (conf.username.length > 0 && conf.password.length > 0) ? "%1:%2@".arg(usernameField.text).arg(passwordField.text) : ""
-                text: qsTr("You can connect to:")
-                      + (developerModeSettings.wlanIpAddress ? qsTr("\nhttp://%1%2:554").arg(authParams).arg(developerModeSettings.wlanIpAddress) : "")
-                      + (developerModeSettings.usbIpAddress ? qsTr("\nhttp://%1%2:554").arg(authParams).arg(developerModeSettings.usbIpAddress) : "")
+                text: (developerModeSettings.wlanIpAddress ? qsTr("\nhttp://%1%2:554").arg(authParams).arg(developerModeSettings.wlanIpAddress) : "")
+                    + (developerModeSettings.usbIpAddress ? qsTr("\nhttp://%1%2:554").arg(authParams).arg(developerModeSettings.usbIpAddress) : "")
+            }
+
+            Label {
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.margins: Theme.horizontalPageMargin
+                wrapMode: Text.WrapAtWordBoundaryOrAnywhere
+                property string authParams: (conf.username.length > 0 && conf.password.length > 0) ? "%1:%2@".arg(usernameField.text).arg(passwordField.text) : ""
+                text: (developerModeSettings.wlanIpAddress ? qsTr("\nhttp://%1%2:5554").arg(authParams).arg(developerModeSettings.wlanIpAddress) : "")
+                    + (developerModeSettings.usbIpAddress ? qsTr("\nhttp://%1%2:5554").arg(authParams).arg(developerModeSettings.usbIpAddress) : "")
             }
 
             SectionHeader {

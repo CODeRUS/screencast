@@ -5,7 +5,7 @@
 
 Name:       screencast
 Summary:    Sailfish screen cast
-Version:    0.2.3
+Version:    0.2.4
 Release:    1
 Group:      System/GUI/Other
 License:    GPLv2
@@ -37,21 +37,18 @@ Lipstick screencast client
 rm -rf %{buildroot}
 %qmake5_install
 
-%post
+%pre
 systemctl stop screencast.socket
 systemctl stop screencast.service
+
+%post
 systemctl daemon-reload
 systemctl enable screencast.socket
-systemctl start screencast.socket
+systemctl restart screencast.socket
 
 %preun
 systemctl stop screencast.socket
 systemctl stop screencast.service
-
-%postun
-systemctl stop screencast.socket
-systemctl stop screencast.service
-
 
 %files
 %defattr(-,root,root,-)

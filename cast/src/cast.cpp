@@ -77,6 +77,11 @@ static const QByteArray c_htmlPage = QByteArrayLiteral(
     "Content-Type: text/html\r\n" \
     "Content-Length: ");
 
+static const QByteArray c_singleImage = QByteArrayLiteral(
+    "HTTP/1.0 200 OK\r\n"
+    "Content-Type: image/jpeg\r\n" \
+    "Content-Length: ");
+
 static const QByteArray c_playerPage = QByteArrayLiteral(
     "<canvas id=\"player\" style=\"background: #000;\" width=\"#WIDTH#\" height=\"#HEIGHT#\">\n"
     "  NO JS.\n"
@@ -521,14 +526,36 @@ void Sender::initialize()
                 || sd_is_socket(i, AF_INET, SOCK_STREAM, 1)){
                 qCDebug(logcast) << Q_FUNC_INFO << "using given socket at FD:" << i;
                 m_server->setSocketDescriptor(i);
+                if (m_server->waitForNewConnection(1000)) {
+                    break;
+                } else {
+                    m_server->close();
+                }
             }
         }
+    }
+
+    if (!m_server->isListening()) {
+        emit lastClientDisconnected();
     }
 
     if (m_server->socketDescriptor() < 0 && !m_server->listen(QHostAddress::Any, m_port)) {
         qCWarning(logcast) << Q_FUNC_INFO << m_server->errorString();
         emit lastClientDisconnected();
     }
+}
+
+void Sender::sendLastFrame(QTcpSocket *client)
+{
+    qDebug() << Q_FUNC_INFO << m_lastFrame.length();
+    if (m_lastFrame.length() == 0) {
+        return;
+    }
+    client->write(c_boundaryStringBegin);
+    client->write(QByteArray::number(m_lastFrame.length()));
+    client->write(c_dataEnd);
+    client->write(m_lastFrame);
+    client->flush();
 }
 
 void Sender::sendFrame(const QPixmap &image, int quality, int rotation)
@@ -546,21 +573,22 @@ void Sender::sendFrame(const QPixmap &image, int quality, int rotation)
         transformed = image.transformed(matrix);
     }
 
-    QByteArray ba;
-    QBuffer buffer(&ba);
+    m_lastFrame.resize(0);
+    QBuffer buffer(&m_lastFrame);
     buffer.open(QIODevice::WriteOnly);
     transformed.save(&buffer, "JPG", quality);
 
     for (QTcpSocket *client : m_clients) {
         if (!client->isOpen() || !client->isWritable()) {
             qCWarning(logcast) << Q_FUNC_INFO << client << client->peerAddress()
-                               << client->isOpen() << client->isWritable();
+                               << "client isOpen:" << client->isOpen()
+                               << "client isWritable:" << client->isWritable();
         }
 
         client->write(c_boundaryStringBegin);
-        client->write(QByteArray::number(ba.length()));
+        client->write(QByteArray::number(m_lastFrame.length()));
         client->write(c_dataEnd);
-        client->write(ba);
+        client->write(m_lastFrame);
     }
 }
 
@@ -568,7 +596,9 @@ void Sender::handleConnection()
 {
     QTcpSocket *client = m_server->nextPendingConnection();
     qCDebug(logcast) << Q_FUNC_INFO << client << client->peerAddress() << client->peerPort();
-    qCDebug(logcast) << Q_FUNC_INFO << client->isOpen() << client->isWritable();
+    qCDebug(logcast) << Q_FUNC_INFO
+                     << "client isOpen:" << client->isOpen()
+                     << "client isWritable:" << client->isWritable();
     connect(client, &QTcpSocket::readyRead, this, &Sender::connectionReadyRead);
     connect(client, &QTcpSocket::disconnected, this, &Sender::connectionClosed);
     connect(client, &QTcpSocket::stateChanged, [client](QAbstractSocket::SocketState socketState) {
@@ -611,6 +641,14 @@ void Sender::connectionReadyRead()
         client->write(QByteArray::number(data.size()));
         client->write(c_dataEnd);
         client->write(data);
+        return;
+    }
+
+    if (url == QLatin1String("/screenshot")) {
+        client->write(c_singleImage);
+        client->write(QByteArray::number(m_lastFrame.size()));
+        client->write(c_dataEnd);
+        client->write(m_lastFrame);
         return;
     }
 
@@ -658,6 +696,8 @@ void Sender::connectionReadyRead()
 
     client->write(c_contentType);
     m_clients.append(client);
+    sendLastFrame(client);
+    sendLastFrame(client);
     emit clientConnected(QStringLiteral("%1:%2")
                          .arg(client->peerAddress().toString())
                          .arg(client->peerPort()));
