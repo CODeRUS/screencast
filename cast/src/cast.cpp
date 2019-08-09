@@ -316,6 +316,7 @@ Options Cast::readOptions()
         dconf.value(QStringLiteral("username"), QString()).toString(),
         dconf.value(QStringLiteral("password"), QString()).toString(),
         false, // daemonize
+        dconf.value(QStringLiteral("flush"), false).toBool(),
     };
 }
 
@@ -589,6 +590,9 @@ void Sender::sendFrame(const QPixmap &image, int quality, int rotation)
         client->write(QByteArray::number(m_lastFrame.length()));
         client->write(c_dataEnd);
         client->write(m_lastFrame);
+        if (m_options.flush) {
+            client->flush();
+        }
     }
 }
 

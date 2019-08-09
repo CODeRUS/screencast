@@ -5,7 +5,7 @@
 
 Name:       screencast
 Summary:    Sailfish screen cast
-Version:    0.2.4
+Version:    0.2.5
 Release:    1
 Group:      System/GUI/Other
 License:    GPLv2

@@ -16,6 +16,7 @@ Page {
         property string username
         property string password
         property var clients
+        property bool flush: false
     }
 
     DeveloperModeSettings {
@@ -89,6 +90,16 @@ Page {
                 automaticCheck: false
                 onClicked: {
                     conf.smooth = !checked
+                }
+            }
+
+            TextSwitch {
+                id: flushSwitch
+                text: qsTr("Flush packages")
+                checked: conf.flush
+                automaticCheck: false
+                onClicked: {
+                    conf.flush = !checked
                 }
             }
 
