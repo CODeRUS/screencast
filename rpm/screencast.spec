@@ -38,17 +38,19 @@ rm -rf %{buildroot}
 %qmake5_install
 
 %pre
-systemctl stop screencast.socket
+if [ "$1" = "2" ]; then
+systemctl stop screencast.socket |:
 systemctl stop screencast.service
+fi
 
 %post
-systemctl daemon-reload
-systemctl enable screencast.socket
-systemctl restart screencast.socket
+systemctl daemon-reload |:
+systemctl enable screencast.socket |:
+systemctl restart screencast.socket |:
 
 %preun
-systemctl stop screencast.socket
-systemctl stop screencast.service
+systemctl stop screencast.socket |:
+systemctl stop screencast.service |:
 
 %files
 %defattr(-,root,root,-)
