@@ -35,6 +35,7 @@
 #include <MGConfItem>
 #include <QBuffer>
 #include <QCryptographicHash>
+#include <QOrientationSensor>
 #include <QTcpServer>
 #include <QTcpSocket>
 
@@ -248,8 +249,11 @@ public:
 
 Cast::Cast(const Options &options, QObject *parent)
     : QObject(parent)
+    , m_orientation(new QOrientationSensor(this))
     , m_options(options)
 {
+    m_orientation->setActive(true);
+
     qCDebug(logcast) << "Buffers:" << options.buffers;
     qCDebug(logcast) << "Scale:" << options.scale;
     qCDebug(logcast) << "Smooth:" << options.smooth;
@@ -432,11 +436,25 @@ void Cast::frame(void *data, lipstick_recorder *recorder, wl_buffer *buffer, uin
     if (rec->m_options.scale != 1.0f) {
         img = img.scaled(rec->m_size, Qt::KeepAspectRatio, rec->m_options.smooth ? Qt::SmoothTransformation : Qt::FastTransformation).convertToFormat(QImage::Format_RGBA8888);
     }
+    int rotation = 0;
+    switch (rec->m_orientation->reading()->orientation()) {
+    case QOrientationReading::TopDown:
+        rotation = 180;
+        break;
+    case QOrientationReading::LeftUp:
+        rotation = 90;
+        break;
+    case QOrientationReading::RightUp:
+        rotation = 270;
+        break;
+    default:
+        break;
+    }
     buf->pixmap = QPixmap::fromImage(img);;
     QPixmap pix = buf->pixmap;
     int quality = rec->m_options.quality;
 
-    emit rec->sendFrame(pix, quality);
+    emit rec->sendFrame(pix, quality, rotation);
     buf->busy = false;
 
     time = timestamp;
@@ -513,16 +531,25 @@ void Sender::initialize()
     }
 }
 
-void Sender::sendFrame(const QPixmap &image, int quality)
+void Sender::sendFrame(const QPixmap &image, int quality, int rotation)
 {
     if (m_clients.isEmpty()) {
         return;
     }
 
+    QPixmap transformed = image;
+    if (rotation != 0) {
+        const QPoint center = image.rect().center();
+        QMatrix matrix;
+        matrix.translate(center.x(), center.y());
+        matrix.rotate(rotation);
+        transformed = image.transformed(matrix);
+    }
+
     QByteArray ba;
     QBuffer buffer(&ba);
     buffer.open(QIODevice::WriteOnly);
-    image.save(&buffer, "JPG", quality);
+    transformed.save(&buffer, "JPG", quality);
 
     for (QTcpSocket *client : m_clients) {
         if (!client->isOpen() || !client->isWritable()) {

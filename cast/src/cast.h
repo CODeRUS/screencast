@@ -41,7 +41,7 @@ public:
 
 public slots:
     void initialize();
-    void sendFrame(const QPixmap &image, int quality);
+    void sendFrame(const QPixmap &image, int quality, int rotation);
 
 signals:
     void clientConnected(const QString &address);
@@ -66,6 +66,7 @@ struct lipstick_recorder_manager;
 struct lipstick_recorder;
 
 class Buffer;
+class QOrientationSensor;
 class Cast : public QObject
 {
     Q_OBJECT
@@ -77,7 +78,7 @@ public:
     static Options readOptions();
 
 signals:
-    void sendFrame(const QPixmap &image, int quality);
+    void sendFrame(const QPixmap &image, int quality, int rotation);
 
 public slots:
     void init();
@@ -108,6 +109,7 @@ private:
     bool m_starving = false;
     QMutex m_mutex;
 
+    QOrientationSensor *m_orientation;
     bool m_shutdown = false;
 
     Options m_options;

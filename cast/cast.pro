@@ -8,7 +8,8 @@ QMAKE_RPATHDIR += /usr/share/$${TARGET}/lib
 
 QT += \
     platformsupport-private \
-    network
+    network \
+    sensors
 CONFIG += \
     wayland-scanner \
     link_pkgconfig
