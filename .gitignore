@@ -6,3 +6,7 @@
 *.user
 
 \.build*/
+
+*.rpm
+
+*.png
