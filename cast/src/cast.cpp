@@ -277,6 +277,7 @@ Cast::Cast(const Options &options, QObject *parent)
     Sender *sender = new Sender(554, m_options);
     connect(serverThread, &QThread::started, sender, &Sender::initialize);
     connect(this, &Cast::sendFrame, sender, &Sender::sendFrame);
+    connect(sender, &Sender::noLastFrame, this, &Cast::requestFrame);
     connect(sender, &Sender::lastClientDisconnected, [this]() {
         if (!m_options.daemonize) {
             return;
@@ -400,6 +401,11 @@ void Cast::recordFrame()
         qCWarning(logcast) << "No free buffers.";
         m_starving = true;
     }
+}
+
+void Cast::requestFrame()
+{
+    lipstick_recorder_repaint(m_recorder);
 }
 
 void Cast::callback(void *data, wl_callback *cb, uint32_t time)
@@ -554,6 +560,7 @@ void Sender::sendLastFrame(QTcpSocket *client)
     qDebug() << Q_FUNC_INFO << m_lastFrame.length();
     if (m_lastFrame.length() == 0) {
         client->write(c_dataBoundary);
+        emit noLastFrame();
         return;
     }
     client->write(c_dataBoundary);

@@ -46,6 +46,7 @@ public slots:
     void sendFrame(const QPixmap &image, int quality, int rotation);
 
 signals:
+    void noLastFrame();
     void clientConnected(const QString &address);
     void clientDisconnected(const QString &address);
     void lastClientDisconnected();
@@ -91,6 +92,7 @@ public slots:
 
 private slots:
     void recordFrame();
+    void requestFrame();
 
 private:
     static void global(void *data, wl_registry *registry, uint32_t id, const char *interface, uint32_t version);
