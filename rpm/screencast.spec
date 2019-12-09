@@ -44,21 +44,14 @@ systemctl stop screencast.service ||:
 fi
 
 %post
-if [ "$1" = "1" ]; then
 systemctl daemon-reload ||:
 systemctl enable screencast.socket ||:
 systemctl restart screencast.socket ||:
-fi
 
 %preun
 if [ "$1" = "0" ]; then
 systemctl stop screencast.socket ||:
 systemctl stop screencast.service ||:
-fi
-
-%postun
-if [ "$1" = "1" ]; then
-systemctl restart screencast.socket ||:
 fi
 
 %files
