@@ -405,7 +405,9 @@ void Cast::recordFrame()
 
 void Cast::requestFrame()
 {
+    qCDebug(logcast) << Q_FUNC_INFO;
     lipstick_recorder_repaint(m_recorder);
+    recordFrame();
 }
 
 void Cast::callback(void *data, wl_callback *cb, uint32_t time)
@@ -597,6 +599,13 @@ void Sender::sendFrame(const QPixmap &image, int quality, int rotation)
                                << "client isWritable:" << client->isWritable();
         }
 
+        if (client->property("needScreenshot").toBool()) {
+            client->write(QByteArray::number(m_lastFrame.size()));
+            client->write(c_dataEnd);
+            client->write(m_lastFrame);
+            return;
+        }
+
         client->write(c_imageDataBegin);
         client->write(m_lastFrame);
         client->write(c_dataBoundary);
@@ -660,6 +669,12 @@ void Sender::connectionReadyRead()
 
     if (url == QLatin1String("/screenshot")) {
         client->write(c_singleImage);
+        if (m_lastFrame.isEmpty()) {
+            client->setProperty("needScreenshot", true);
+            m_clients.append(client);
+            emit noLastFrame();
+            return;
+        }
         client->write(QByteArray::number(m_lastFrame.size()));
         client->write(c_dataEnd);
         client->write(m_lastFrame);
