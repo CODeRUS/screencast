@@ -407,7 +407,6 @@ void Cast::requestFrame()
 {
     qCDebug(logcast) << Q_FUNC_INFO;
     lipstick_recorder_repaint(m_recorder);
-    recordFrame();
 }
 
 void Cast::callback(void *data, wl_callback *cb, uint32_t time)
