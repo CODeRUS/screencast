@@ -5,7 +5,7 @@
 
 Name:       screencast
 Summary:    Sailfish screen cast
-Version:    0.2.6
+Version:    0.3.0
 Release:    1
 Group:      System/GUI/Other
 License:    GPLv2
@@ -21,6 +21,8 @@ BuildRequires:  pkgconfig(wayland-client)
 BuildRequires:  pkgconfig(mlite5)
 BuildRequires:  pkgconfig(systemd)
 BuildRequires:  sailfish-svg2png
+BuildRequires:  systemd
+%systemd_requires
 
 %description
 Lipstick screencast client
@@ -37,26 +39,21 @@ Lipstick screencast client
 rm -rf %{buildroot}
 %qmake5_install
 
-%pre
-if [ "$1" = "2" ]; then
-systemctl stop screencast.socket ||:
-systemctl stop screencast.service ||:
-fi
-
 %post
-systemctl daemon-reload ||:
-systemctl enable screencast.socket ||:
-systemctl restart screencast.socket ||:
+%systemd_user_post screencast.socket
+%systemd_user_post screencast.service
 
 %preun
-if [ "$1" = "0" ]; then
-systemctl stop screencast.socket ||:
-systemctl stop screencast.service ||:
-fi
+%systemd_user_preun screencast.socket
+%systemd_user_preun screencast.service
+
+%postun
+%systemd_user_postun screencast.socket
+%systemd_user_postun screencast.service
 
 %files
 %defattr(-,root,root,-)
-%attr(755, root, root) %{_sbindir}/screencast
+%attr(2755, root, privileged) %{_sbindir}/screencast
 
 %{_datadir}/themes/%{theme}/meegotouch/z1.0/icons/*.png
 %{_datadir}/themes/%{theme}/meegotouch/z1.25/icons/*.png
@@ -65,8 +62,8 @@ fi
 %{_datadir}/themes/%{theme}/meegotouch/z1.75/icons/*.png
 %{_datadir}/themes/%{theme}/meegotouch/z2.0/icons/*.png
 
-/lib/systemd/system/screencast.service
-/lib/systemd/system/screencast.socket
+%{_libdir}/systemd/user/screencast.service
+%{_libdir}/systemd/user/screencast.socket
 
 %{_datadir}/jolla-settings/entries/screencast.json
 %{_datadir}/jolla-settings/pages/screencast/mainpage.qml

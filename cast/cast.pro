@@ -29,7 +29,7 @@ HEADERS += \
 systemd.files = \
     systemd/screencast.service \
     systemd/screencast.socket
-systemd.path = /lib/systemd/system/
+systemd.path = /usr/lib/systemd/user/
 INSTALLS += systemd
 
 DEFINES += QT_DEPRECATED_WARNINGS
