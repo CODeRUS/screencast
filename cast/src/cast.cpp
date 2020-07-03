@@ -274,7 +274,7 @@ Cast::Cast(const Options &options, QObject *parent)
 
     QThread *serverThread = new QThread;
 
-    Sender *sender = new Sender(554, m_options);
+    Sender *sender = new Sender(5554, m_options);
     connect(serverThread, &QThread::started, sender, &Sender::initialize);
     connect(this, &Cast::sendFrame, sender, &Sender::sendFrame);
     connect(sender, &Sender::noLastFrame, this, &Cast::requestFrame);
@@ -406,6 +406,9 @@ void Cast::recordFrame()
 void Cast::requestFrame()
 {
     qCDebug(logcast) << Q_FUNC_INFO;
+    if (!m_recorder) {
+        return;
+    }
     lipstick_recorder_repaint(m_recorder);
 }
 
@@ -546,8 +549,8 @@ void Sender::initialize()
         }
     }
 
-    if (!m_server->isListening()) {
-        emit lastClientDisconnected();
+    if (m_server->isListening()) {
+        return;
     }
 
     if (m_server->socketDescriptor() < 0 && !m_server->listen(QHostAddress::Any, m_port)) {

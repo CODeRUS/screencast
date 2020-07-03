@@ -77,7 +77,7 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
             options.buffers = parser.value(buffersOption).toInt();
         }
         if (parser.isSet(scaleOption)) {
-            options.scale = parser.value(scaleOption).toFloat();
+            options.scale = parser.value(scaleOption).toDouble();
         }
         if (parser.isSet(qualityOption)) {
             options.quality = parser.value(qualityOption).toInt();

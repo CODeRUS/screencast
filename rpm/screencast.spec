@@ -40,8 +40,10 @@ rm -rf %{buildroot}
 %qmake5_install
 
 %post
-%systemd_user_post screencast.socket
-%systemd_user_post screencast.service
+%systemd_post \\--user \\--global screencast.socket
+%systemd_post \\--user \\--global screencast.service
+systemctl-user enable screencast.socket ||:
+systemctl-user restart screencast.socket ||:
 
 %preun
 %systemd_user_preun screencast.socket

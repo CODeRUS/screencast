@@ -2,7 +2,6 @@
 Before=screencast.service
 
 [Socket]
-ListenStream=554
 ListenStream=5554
 
 [Install]
