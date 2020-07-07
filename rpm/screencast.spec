@@ -39,19 +39,22 @@ Lipstick screencast client
 rm -rf %{buildroot}
 %qmake5_install
 
+%pre
+if [ "$1" = "2" ]; then
+systemctl-user stop screencast.socket ||:
+systemctl-user stop screencast.service ||:
+fi
+
 %post
-%systemd_post \\--user \\--global screencast.socket
-%systemd_post \\--user \\--global screencast.service
+systemctl-user daemon-reload ||:
 systemctl-user enable screencast.socket ||:
 systemctl-user restart screencast.socket ||:
 
 %preun
-%systemd_user_preun screencast.socket
-%systemd_user_preun screencast.service
-
-%postun
-%systemd_user_postun screencast.socket
-%systemd_user_postun screencast.service
+if [ "$1" = "0" ]; then
+systemctl-user stop screencast.socket ||:
+systemctl-user stop screencast.service ||:
+fi
 
 %files
 %defattr(-,root,root,-)
