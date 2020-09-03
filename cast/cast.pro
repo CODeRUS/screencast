@@ -46,5 +46,4 @@ isEmpty(PROJECT_PACKAGE_VERSION) {
 }
 DEFINES += PROJECT_PACKAGE_VERSION=\\\"$$VERSION\\\"
 
-INCLUDEPATH += /usr/include
 INCLUDEPATH += /usr/include/mlite5
