@@ -1,0 +1,45 @@
+stages:
+  - build
+  - publish
+
+.build:
+  stage: build
+  allow_failure: true
+  image: "coderus/sailfishos-platform-sdk:${SFOS_VERSION}"
+  artifacts:
+    paths:
+      - "~/output/"
+  script:
+    - ls -la
+    - mkdir ~/output
+    - mkdir ~/build
+    - cp -r * ~/build
+    - pushd ~/build
+    - mb2 -t SailfishOS-$SFOS_VERSION-armv7hl build
+    - cp RPMS/* ~/output
+    - popd
+    - rm -rf ~/build/*
+    - cp -r * ~/build
+    - pushd ~/build
+    - mb2 -t SailfishOS-$SFOS_VERSION-i486 build
+    - cp RPMS/* ~/output
+    - popd
+
+  only:
+    - merge_requests
+    - tags
+  tags:
+    - docker
+
+build-3.3.1.14:
+  extends: .build
+  variables:
+    SFOS_VERSION: "3.3.0.14"
+
+publish:
+    image: inetprocess/gitlab-release
+    stage: publish
+    only:
+        - tags
+    script:
+        - gitlab-release --message 'Release $CI_BUILD_TAG' ~/output/*
