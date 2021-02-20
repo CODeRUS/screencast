@@ -16,7 +16,7 @@ CONFIG += \
 PKGCONFIG += \
     wayland-client \
     mlite5 \
-    libsystemd-daemon
+    libsystemd
 WAYLANDCLIENTSOURCES += protocol/lipstick-recorder.xml
 
 SOURCES += \
@@ -34,6 +34,8 @@ INSTALLS += systemd
 
 DEFINES += QT_DEPRECATED_WARNINGS
 DEFINES += QT_NO_CAST_FROM_ASCII QT_NO_CAST_TO_ASCII
+
+LIBS += -lsystemd
 
 EXTRA_CFLAGS=-W -Wall -Wextra -Wpedantic -Werror=return-type
 QMAKE_CXXFLAGS += $$EXTRA_CFLAGS
