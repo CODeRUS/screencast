@@ -24,21 +24,21 @@ jobs:
       id: build_armv7hl
       uses: coderus/github-sfos-build@master
       with:
-        release: 4.0.1.45
+        release: 4.1.0.24
         arch: armv7hl
 
     - name: Build aarch64
       id: build_aarch64
       uses: coderus/github-sfos-build@master
       with:
-        release: 4.0.1.45
+        release: 4.1.0.24
         arch: aarch64
 
     - name: Build i486
       id: build_i486
       uses: coderus/github-sfos-build@master
       with:
-        release: 4.0.1.45
+        release: 4.1.0.24
         arch: i486
       
     - name: Upload build result
