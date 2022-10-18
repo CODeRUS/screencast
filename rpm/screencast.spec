@@ -32,7 +32,8 @@ Lipstick screencast client
 
 %build
 %qtc_qmake5 \
-  "PROJECT_PACKAGE_VERSION=%{version}"
+  "PROJECT_PACKAGE_VERSION=%{version}" \
+  SPEC_UNITDIR=%{_userunitdir}
 %qtc_make %{_smp_mflags}
 
 %install
@@ -67,8 +68,8 @@ fi
 %{_datadir}/themes/%{theme}/meegotouch/z1.75/icons/*.png
 %{_datadir}/themes/%{theme}/meegotouch/z2.0/icons/*.png
 
-%{_libdir}/systemd/user/screencast.service
-%{_libdir}/systemd/user/screencast.socket
+%{_userunitdir}/screencast.service
+%{_userunitdir}/screencast.socket
 
 %{_datadir}/jolla-settings/entries/screencast.json
 %{_datadir}/jolla-settings/pages/screencast/mainpage.qml
