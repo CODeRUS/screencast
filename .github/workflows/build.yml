@@ -8,9 +8,6 @@ on:
     branches:
       - master
 
-env:
-  RELEASE: 4.4.0.68
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -25,21 +22,21 @@ jobs:
       id: build_armv7hl
       uses: ilpianista/github-sfos-build@bugfix/fix-build
       with:
-        release: 3.4.0.22
+        release: 4.4.0.68
         arch: armv7hl
 
     - name: Build aarch64
       id: build_aarch64
       uses: ilpianista/github-sfos-build@bugfix/fix-build
       with:
-        release: 3.4.0.22
+        release: 4.4.0.68
         arch: aarch64
 
     - name: Build i486
       id: build_i486
       uses: ilpianista/github-sfos-build@bugfix/fix-build
       with:
-        release: 3.4.0.22
+        release: 4.4.0.68
         arch: i486
       
     - name: Upload build result
