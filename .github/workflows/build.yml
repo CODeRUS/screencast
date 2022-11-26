@@ -6,7 +6,10 @@ on:
       - '*'
   pull_request:
     branches:
+    
       - master
+env:
+  RELEASE: 4.4.0.68
 
 jobs:
   build:
@@ -22,21 +25,21 @@ jobs:
       id: build_armv7hl
       uses: coderus/github-sfos-build@master
       with:
-        release: 4.4.0.68
+        release: $RELEASE
         arch: armv7hl
 
     - name: Build aarch64
       id: build_aarch64
       uses: coderus/github-sfos-build@master
       with:
-        release: 4.4.0.68
+        release: $RELEASE
         arch: aarch64
 
     - name: Build i486
       id: build_i486
       uses: coderus/github-sfos-build@master
       with:
-        release: 4.4.0.68
+        release: $RELEASE
         arch: i486
       
     - name: Upload build result
