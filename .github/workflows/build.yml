@@ -20,21 +20,21 @@ jobs:
       
     - name: Build armv7hl
       id: build_armv7hl
-      uses: ilpianista/github-sfos-build@bugfix/fix-build
+      uses: coderus/github-sfos-build@master
       with:
         release: 4.4.0.68
         arch: armv7hl
 
     - name: Build aarch64
       id: build_aarch64
-      uses: ilpianista/github-sfos-build@bugfix/fix-build
+      uses: coderus/github-sfos-build@master
       with:
         release: 4.4.0.68
         arch: aarch64
 
     - name: Build i486
       id: build_i486
-      uses: ilpianista/github-sfos-build@bugfix/fix-build
+      uses: coderus/github-sfos-build@master
       with:
         release: 4.4.0.68
         arch: i486
