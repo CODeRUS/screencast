@@ -455,8 +455,11 @@ void Cast::frame(void *data, lipstick_recorder *recorder, wl_buffer *buffer, uin
     if (rec->m_options.scale != 1.0f) {
         img = img.scaled(rec->m_size, Qt::KeepAspectRatio, rec->m_options.smooth ? Qt::SmoothTransformation : Qt::FastTransformation).convertToFormat(QImage::Format_RGBA8888);
     }
-    int rotation = 0;
+    static int rotation = 0;
     switch (rec->m_orientation->reading()->orientation()) {
+    case QOrientationReading::TopUp:
+        rotation = 0;
+        break;
     case QOrientationReading::TopDown:
         rotation = 180;
         break;
