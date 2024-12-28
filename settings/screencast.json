@@ -1,10 +1,10 @@
 {
-    "translation_catalog": "settings-system",
+    "translation_catalog": "screencast",
     "entries": [
         {
             "path": "system_settings/system/screencast",
             "title": "Screencast",
-            "translation_id": "settings_screencast-title",
+            "translation_id": "Screencast",
             "type": "page",
             "icon": "image://theme/icon-m-screencast",
             "params": {
