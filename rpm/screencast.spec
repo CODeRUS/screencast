@@ -5,7 +5,7 @@
 
 Name:       screencast
 Summary:    Sailfish screen cast
-Version:    0.3.1
+Version:    0.3.2
 Release:    1
 Group:      System/GUI/Other
 License:    GPLv2
@@ -61,15 +61,12 @@ fi
 %defattr(-,root,root,-)
 %attr(2755, root, privileged) %{_sbindir}/screencast
 
-%{_datadir}/themes/%{theme}/meegotouch/z1.0/icons/*.png
-%{_datadir}/themes/%{theme}/meegotouch/z1.25/icons/*.png
-%{_datadir}/themes/%{theme}/meegotouch/z1.5/icons/*.png
-%{_datadir}/themes/%{theme}/meegotouch/z1.5-large/icons/*.png
-%{_datadir}/themes/%{theme}/meegotouch/z1.75/icons/*.png
-%{_datadir}/themes/%{theme}/meegotouch/z2.0/icons/*.png
+%{_datadir}/themes/%{theme}/silica
 
 %{_userunitdir}/screencast.service
 %{_userunitdir}/screencast.socket
 
 %{_datadir}/jolla-settings/entries/screencast.json
 %{_datadir}/jolla-settings/pages/screencast/mainpage.qml
+
+%{_datadir}/translations

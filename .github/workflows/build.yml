@@ -9,14 +9,14 @@ on:
     
       - master
 env:
-  RELEASE: 4.4.0.68
+  RELEASE: 4.6.0.13
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
 
     - name: Prepare
       run: mkdir output
@@ -43,7 +43,7 @@ jobs:
         arch: i486
       
     - name: Upload build result
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: output-rpms
         path: RPMS
