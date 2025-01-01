@@ -6,7 +6,7 @@
 Name:       screencast
 Summary:    Sailfish screen cast
 Version:    0.3.2
-Release:    2
+Release:    3
 Group:      System/GUI/Other
 License:    GPLv2
 URL:        https://github.com/coderus/screencast
